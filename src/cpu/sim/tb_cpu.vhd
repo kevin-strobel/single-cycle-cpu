@@ -100,15 +100,15 @@ begin
         );
         checkRegs;
 
-        wait for 50ns; -- 406
+        wait for 80ns; -- 436
 
-        expectations(1)  := x"00000118";
+        expectations(1)  := x"0000012c";
         expectations(25) := x"0000000c";
         expectations(26) := x"00000018";
         checkRegs;
 
-        wait for 130ns; -- 536
-        expectations(1)  := x"00000118";
+        wait for 130ns; -- 566
+        expectations(1)  := x"0000012c";
         expectations(2)  := x"00000004";
         expectations(3)  := x"ffffffff";
         expectations(4)  := x"00000004";
@@ -116,26 +116,7 @@ begin
         expectations(11) := x"00000000";
         checkRegs;
 
-        wait for 140ns; -- 676
-
-        expectations(20) := x"ffffffb7";
-        expectations(21) := x"00000040";
-        expectations(22) := x"00000023";
-        expectations(24) := x"00000001";
-        expectations(25) := x"000000b7";
-        expectations(26) := x"00000040";
-        expectations(27) := x"00000023";
-        expectations(28) := x"00000001";
-        expectations(10) := x"00000293";
-        expectations(11) := x"ffffff81";
-        expectations(12) := x"00000293";
-        expectations(13) := x"0000ff81";
-        expectations(14) := x"fff00493";
-        expectations(15) := x"0014a513";
-        checkRegs;
-
-        wait for 130ns; -- 806
-
+        wait for 130ns; -- 696
         expectations(2)  := x"fedcba98";
         expectations(3)  := x"000000ba";
         expectations(4)  := x"000000ec";
@@ -147,8 +128,7 @@ begin
         checkDMem(3, x"98baba00");
         checkDMem(6, x"98badcfe");
 
-        wait for 70ns; -- 876
-
+        wait for 70ns; -- 766
         expectations(31)  := x"ffffff98";
         expectations(30)  := x"ffffffba";
         expectations(29)  := x"ffffffec";

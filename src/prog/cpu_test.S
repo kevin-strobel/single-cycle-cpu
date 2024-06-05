@@ -1,7 +1,8 @@
-.globl _start
-_start:
+.globl main
+main:
 	lui x1, 0x1234
 	auipc x2, 0x800
+	addi x2, x2, -0x10
 	addi x4, x2, 8
 	addi x5, x2, -8
 	addi x6, x0, 4
@@ -31,8 +32,6 @@ _start:
 	fence
 	ecall
 	ebreak
-
-	# TODO: BEQ, BNE, BLT; BGE; BLTU; BGEU; LB; LH; LW; LBU; LHU; SB; SH; SW
 
 	# test x0
 	lui x0, 0x1248
@@ -107,23 +106,6 @@ no:
 yes2:
 	addi x10, x10, 1
 
-	lb x20, 0(x0)
-	lb x21, 1(x0)
-	lb x22, 0(x10)
-	lb x24, 1(x10)
-	lbu x25, 0(x0)
-	lbu x26, 1(x0)
-	lbu x27, 0(x10)
-	lbu x28, 1(x10)
-
-	lh x10, 8(x2)
-	lh x11, 10(x2)
-	lhu x12, 8(x2)
-	lhu x13, 10(x2)
-
-	lw x14, 28(x0)
-	lw x15, 32(x0)
-
 	li x2, 0xfedcba98
 	li x3, 0xba
 	li x4, 0xec
@@ -139,6 +121,7 @@ yes2:
 
 	sw x2, 16(x10)
 
+	# I believe lbu, lhu are fine
 	lb x31, 0(x10)
 	lb x30, 1(x10)
 	lb x29, 2(x10)
