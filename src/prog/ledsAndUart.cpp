@@ -40,47 +40,25 @@ namespace gpio {
 	};
 }
 
-char MESSAGE[16];
-void initData() {
-	int idx = 0;
-	MESSAGE[idx++] = 'E';
-	MESSAGE[idx++] = 'x';
-	MESSAGE[idx++] = 'a';
-	MESSAGE[idx++] = 'm';
-	MESSAGE[idx++] = 'p';
-	MESSAGE[idx++] = 'l';
-	MESSAGE[idx++] = 'e';
-	MESSAGE[idx++] = ' ';
-	MESSAGE[idx++] = 'T';
-	MESSAGE[idx++] = 'e';
-	MESSAGE[idx++] = 'x';
-	MESSAGE[idx++] = 't';
-	MESSAGE[idx++] = '!';
-	MESSAGE[idx++] = '!';
-	MESSAGE[idx++] = '\n';
-	MESSAGE[idx++] = '\0';
-}
-
 namespace {
-	void uartSend(gpio::Uart &uart, int &pos) {
-		uart.send(MESSAGE[pos]);
-		if(pos == 16)
-			pos = 0;
-		else
-			pos++;
-	}
+	const char MESSAGE[] = "Example Text!!\r\n";
+	constexpr int MESSAGE_LEN = sizeof(MESSAGE);
 }
 
 int main() {
-	initData();
 	gpio::LEDs leds;
 	gpio::Uart uart;
 
-	int idx = 0;
+	int charIdx = 0;
 
 	while(1) {
 		leds.roll();
-		uartSend(uart, idx);
+
+		uart.send(MESSAGE[charIdx]);
+		if(charIdx == MESSAGE_LEN-2) // don't print \0 character
+			charIdx = 0;
+		else
+			charIdx++;
 	}
 
 	return 0;
