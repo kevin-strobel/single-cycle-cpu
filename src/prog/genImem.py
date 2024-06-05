@@ -16,10 +16,14 @@ binFile = rawName + ".bin"
 hexFile = rawName + ".hex"
 
 # Compile
-os.system(f"{COMPILER} -nostdlib -nodefaultlibs -nostartfiles -fno-exceptions -march=rv32i -mabi=ilp32 -T linkerscript.ld -o {objFile} bootstrap.S {sourceFile}")
+if os.system(f"{COMPILER} -nostdlib -nodefaultlibs -nostartfiles -fno-exceptions -march=rv32i -mabi=ilp32 -T linkerscript.ld -o {objFile} bootstrap.S {sourceFile}") != 0:
+    exit(-1)
 # bin
-os.system(f"{OBJCOPY} -O binary {objFile} {binFile}")
+if os.system(f"{OBJCOPY} -O binary {objFile} {binFile}") != 0:
+    exit(-1)
 # hex
-os.system(f"python __bin2hex.py {binFile} {hexFile}")
+if os.system(f"python __bin2hex.py {binFile} {hexFile}") != 0:
+    exit(-1)
 # JTAG2AXI
-os.system(f"python __jtag2axi.py {hexFile}")
+if os.system(f"python __jtag2axi.py {hexFile}") != 0:
+    exit(-1)
