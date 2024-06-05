@@ -81,6 +81,13 @@ architecture behav of cpu is
     signal j2a_rxData : std_logic_vector(31 downto 0);
     signal j2a_rxValid : std_logic;
 
+    signal dmem_we_cpu_ctrl : std_logic;
+    signal dmem_we_jtag2axi : std_logic;
+    signal dmem_addr_cpu_ctrl : std_logic_vector(BIT_WIDTH-1 downto 0);
+    signal dmem_addr_jtag2axi : std_logic_vector(BIT_WIDTH-1 downto 0);
+    signal dmem_din_cpu_ctrl : std_logic_vector(BIT_WIDTH-1 downto 0);
+    signal dmem_din_jtag2axi : std_logic_vector(BIT_WIDTH-1 downto 0);
+
     signal debug_out_dec_inst_exc : std_logic;
     signal debug_out_regfile : regfile_t;
     signal debug_out_dmem : mem_t;
@@ -201,8 +208,8 @@ begin
 
     -- DECODER <----> DMEM
     -- entity "memory" takes care of address alignment
-    dmem_addr <= std_logic_vector(unsigned(regf_rdata1) + unsigned(sext(dec_decoded_inst.imm(11 downto 0), BIT_WIDTH)));
-    dmem_din <= convertRegisterToMemory(dec_decoded_inst.uop, dmem_addr(1 downto 0), regf_rdata2, dmem_dout);
+    dmem_addr_cpu_ctrl <= std_logic_vector(unsigned(regf_rdata1) + unsigned(sext(dec_decoded_inst.imm(11 downto 0), BIT_WIDTH)));
+    dmem_din_cpu_ctrl <= convertRegisterToMemory(dec_decoded_inst.uop, dmem_addr_cpu_ctrl(1 downto 0), regf_rdata2, dmem_dout);
 
     -- DECODER <----> IO_LEDS
     ioLeds_wdata <= regf_rdata2(7 downto 0); -- no endianness conversion
@@ -214,6 +221,15 @@ begin
     imem_din <= j2a_rxData;
     imem_we <= j2a_rxValid;
 
+    -- JTAG2AXI <----> DMEM
+    dmem_addr_jtag2axi <= j2a_rxAddr;
+    dmem_din_jtag2axi <= j2a_rxData;
+    dmem_we_jtag2axi <= j2a_rxValid;
+
+    -- MUXES
+    dmem_we <= dmem_we_cpu_ctrl or dmem_we_jtag2axi;
+    dmem_addr <= dmem_addr_cpu_ctrl when dmem_we_jtag2axi = '0' else dmem_addr_jtag2axi;
+    dmem_din <= dmem_din_cpu_ctrl when dmem_we_jtag2axi = '0' else dmem_din_jtag2axi;
 
     -- DEBUG
     debug_out_dec_inst_exc <= dec_inst_exc;
@@ -225,7 +241,7 @@ begin
 
 ---------------------------------------------------------------------------
 
-    cpu_ctrl: process(alu_result, dec_decoded_inst, pc_addr_out, regf_rdata1, regf_rdata2, alu_branch_comp_true, dmem_dout, dmem_addr)
+    cpu_ctrl: process(alu_result, dec_decoded_inst, pc_addr_out, regf_rdata1, regf_rdata2, alu_branch_comp_true, dmem_dout, dmem_addr_cpu_ctrl)
         constant MMIO_ADDR_LED  : std_logic_vector(BIT_WIDTH-1 downto 0) := x"0badf00d";
         constant MMIO_ADDR_UART : std_logic_vector(BIT_WIDTH-1 downto 0) := x"cafebabe";
     begin
@@ -235,7 +251,7 @@ begin
         alu_operand2 <= (others => '0');
         regf_wen <= '0';
         regf_wdata <= alu_result;
-        dmem_we <= '0';
+        dmem_we_cpu_ctrl <= '0';
         ioLeds_wen <= '0';
         ioUart_wen <= '0';
 
@@ -275,17 +291,17 @@ begin
                 end if;
             when LOAD =>
                 regf_wen <= '1';
-                regf_wdata <= convertMemoryToRegister(dmem_dout, dec_decoded_inst.uop, dmem_addr(1 downto 0));
+                regf_wdata <= convertMemoryToRegister(dmem_dout, dec_decoded_inst.uop, dmem_addr_cpu_ctrl(1 downto 0));
             when STORE =>
-                if dmem_addr = MMIO_ADDR_LED then
+                if dmem_addr_cpu_ctrl = MMIO_ADDR_LED then
                     -- STORE to IO_LEDS
                     ioLeds_wen <= '1';
-                elsif dmem_addr = MMIO_ADDR_UART then
+                elsif dmem_addr_cpu_ctrl = MMIO_ADDR_UART then
                     -- STORE to IO_UART
                     ioUart_wen <= '1';
                 else
                     -- Regular STORE to DMEM
-                    dmem_we <= '1';
+                    dmem_we_cpu_ctrl <= '1';
                 end if;
             when MISC_MEM | SYSTEM =>
                 -- no operation
