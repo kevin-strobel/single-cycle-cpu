@@ -34,7 +34,7 @@ namespace gpio {
 
 	private:
 		// constexpr static unsigned int *GPIO_LED_ADDR = static_cast<unsigned int*>(0xbadf00d);
-		static inline unsigned int * const GPIO_LED_ADDR = reinterpret_cast<unsigned int*>(0xbadf00d);
+		static inline volatile unsigned int * const GPIO_LED_ADDR = reinterpret_cast<volatile unsigned int*>(0xbadf00d);
 	};
 }
 

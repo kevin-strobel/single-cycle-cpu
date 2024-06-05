@@ -52,6 +52,7 @@ proc cpu_bd {} {
 		create_bd_port -dir I -type rst rstn
 		create_bd_port -dir I -type clk -freq_hz 100000000 clk
 		create_bd_port -dir O -from 7 -to 0 -type data io_leds
+		create_bd_port -dir O io_uart_tx
 	endgroup
 
 	# Wiring
@@ -65,6 +66,7 @@ proc cpu_bd {} {
 	connect_bd_net [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins clk_wiz_0/clk_out1]
 
 	connect_bd_net [get_bd_ports io_leds] [get_bd_pins cpu_0/io_leds]
+	connect_bd_net [get_bd_ports io_uart_tx] [get_bd_pins cpu_0/io_uart_tx]
 	connect_bd_intf_net [get_bd_intf_pins jtag_axi_0/M_AXI] [get_bd_intf_pins cpu_0/j2a_master_axi]
 
 	connect_bd_net [get_bd_pins clk_wiz_0/locked] [get_bd_pins proc_sys_reset_0/dcm_locked]

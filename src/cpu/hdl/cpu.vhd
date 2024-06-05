@@ -13,6 +13,7 @@ entity cpu is
         rstn : in std_logic;
 
         io_leds : out std_logic_vector(7 downto 0);
+        io_uart_tx : out std_logic;
 
         j2a_master_axi_arvalid : in std_logic;
         j2a_master_axi_araddr : in std_logic_vector(31 downto 0);
@@ -71,6 +72,9 @@ architecture behav of cpu is
 
     signal ioLeds_wen : std_logic;
     signal ioLeds_wdata : std_logic_vector(7 downto 0);
+
+    signal ioUart_wen : std_logic;
+    signal ioUart_wdata : std_logic_vector(7 downto 0);
 
     signal j2a_rxActive : std_logic;
     signal j2a_rxAddr : std_logic_vector(31 downto 0);
@@ -149,6 +153,15 @@ begin
         leds => io_leds
     );
 
+    ioUart: entity work.ioUart
+    port map (
+        SEND => ioUart_wen,
+        DATA => ioUart_wdata,
+        CLK => clk,
+        READY => open, -- currently not of interest
+        UART_TX => io_uart_tx
+    );
+
     jtagToAxiInterface: entity work.axiDataReceiver
     port map (
         clk => clk,
@@ -194,6 +207,9 @@ begin
     -- DECODER <----> IO_LEDS
     ioLeds_wdata <= regf_rdata2(7 downto 0); -- no endianness conversion
 
+    -- DECODER <----> IO_UART
+    ioUart_wdata <= regf_rdata2(7 downto 0); -- no endianness conversion
+
     -- JTAG2AXI <----> IMEM
     imem_din <= j2a_rxData;
     imem_we <= j2a_rxValid;
@@ -210,7 +226,8 @@ begin
 ---------------------------------------------------------------------------
 
     cpu_ctrl: process(alu_result, dec_decoded_inst, pc_addr_out, regf_rdata1, regf_rdata2, alu_branch_comp_true, dmem_dout, dmem_addr)
-        constant MMIO_ADDR_LED : std_logic_vector(BIT_WIDTH-1 downto 0) := x"0badf00d";
+        constant MMIO_ADDR_LED  : std_logic_vector(BIT_WIDTH-1 downto 0) := x"0badf00d";
+        constant MMIO_ADDR_UART : std_logic_vector(BIT_WIDTH-1 downto 0) := x"cafebabe";
     begin
         pc_wen_addr_in <= '0';
         pc_addr_in <= (others => '0');
@@ -220,6 +237,7 @@ begin
         regf_wdata <= alu_result;
         dmem_we <= '0';
         ioLeds_wen <= '0';
+        ioUart_wen <= '0';
 
         case dec_decoded_inst.opcode is
             when LUI =>
@@ -262,6 +280,9 @@ begin
                 if dmem_addr = MMIO_ADDR_LED then
                     -- STORE to IO_LEDS
                     ioLeds_wen <= '1';
+                elsif dmem_addr = MMIO_ADDR_UART then
+                    -- STORE to IO_UART
+                    ioUart_wen <= '1';
                 else
                     -- Regular STORE to DMEM
                     dmem_we <= '1';
