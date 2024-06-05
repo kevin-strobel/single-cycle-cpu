@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.utils.regfile_t;
+use work.types.regfile_t;
 
 entity tb_cpu is
 end tb_cpu;
@@ -17,6 +17,7 @@ begin
     port map (
         clk => clk,
         rst => rst,
+
         debug_regfile => debug_regfile
     );
     

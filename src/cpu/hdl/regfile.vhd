@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.utils.all;
+use work.types.regfile_t;
 
 entity regfile is
     port (
@@ -17,18 +18,18 @@ entity regfile is
         wdata : in std_logic_vector(BIT_WIDTH-1 downto 0);
 
         rdata1 : out std_logic_vector(BIT_WIDTH-1 downto 0);
-        rdata2 : out std_logic_vector(BIT_WIDTH-1 downto 0)
+        rdata2 : out std_logic_vector(BIT_WIDTH-1 downto 0);
+
+        debug_regfile : out regfile_t
     );
 end regfile;
 
 architecture behav of regfile is
-    constant REG_COUNT : integer := 32;
-
-    type regfile_t is array(0 to REG_COUNT-1) of std_logic_vector(BIT_WIDTH-1 downto 0);
     signal regfile : regfile_t;
 begin
     rdata1 <= regfile(to_integer(unsigned(raddr1)));
     rdata2 <= regfile(to_integer(unsigned(raddr2)));
+    debug_regfile <= regfile;
 
     write: process(clk)
     begin

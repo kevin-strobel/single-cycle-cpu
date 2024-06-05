@@ -4,11 +4,14 @@ use ieee.numeric_std.all;
 
 use work.instruction.all;
 use work.utils.all;
+use work.types.regfile_t;
 
 entity cpu is
     port (
       clk : in std_logic;
-      rst : in std_logic
+      rst : in std_logic;
+
+      debug_regfile : out regfile_t
     );
 end cpu;
 
@@ -74,7 +77,8 @@ begin
         waddr => regf_waddr,
         wdata => regf_wdata,
         rdata1 => regf_rdata1,
-        rdata2 => regf_rdata2
+        rdata2 => regf_rdata2,
+        debug_regfile => debug_regfile
     );
 
     alu: entity work.alu
