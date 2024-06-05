@@ -1,0 +1,22 @@
+42c42,43
+< entity UART_TX_CTRL is
+---
+> -- original name: UART_TX_CTRL
+> entity ioUart is
+48c49
+< end UART_TX_CTRL;
+---
+> end ioUart;
+50c51
+< architecture Behavioral of UART_TX_CTRL is
+---
+> architecture Behavioral of ioUart is
+54c55,56
+< constant BIT_TMR_MAX : std_logic_vector(13 downto 0) := "10100010110000"; --10416 = (round(100MHz / 9600)) - 1
+---
+> -- constant BIT_TMR_MAX : std_logic_vector(13 downto 0) := "10100010110000"; --10416 = (round(100MHz / 9600)) - 1
+> constant BIT_TMR_MAX : std_logic_vector(11 downto 0) := "101000101100"; --2604 = (round(25MHz / 9600)) - 1
+59c61
+< signal bitTmr : std_logic_vector(13 downto 0) := (others => '0');
+---
+> signal bitTmr : std_logic_vector(11 downto 0) := (others => '0');
