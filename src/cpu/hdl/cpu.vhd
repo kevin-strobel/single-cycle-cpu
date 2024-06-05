@@ -108,7 +108,7 @@ begin
 ---------------------------------------------------------------------------
 
     -- TODO sensitivity list
-    cpu_ctrl: process(alu_result, dec_decoded_inst, pc_addr_out, regf_rdata1, regf_rdata2)
+    cpu_ctrl: process(alu_result, dec_decoded_inst, pc_addr_out, regf_rdata1, regf_rdata2, alu_branch_comp_true)
     begin
         pc_wen_addr_in <= '0';
         pc_addr_in <= (others => '0');
@@ -143,11 +143,19 @@ begin
                 pc_addr_in <= std_logic_vector(unsigned(regf_rdata1) + unsigned(sext(dec_decoded_inst.imm(11 downto 0), BIT_WIDTH-1) & '0'));
                 regf_wen <= '1';
                 regf_wdata <= std_logic_vector(unsigned(pc_addr_out) + INST_WIDTH_BYTE);
+            when BRANCH =>
+                alu_operand1 <= regf_rdata1;
+                alu_operand2 <= regf_rdata2;
+
+                if alu_branch_comp_true = '1' then
+                    pc_wen_addr_in <= '1';
+                    pc_addr_in <= std_logic_vector(unsigned(pc_addr_out) + unsigned(sext(dec_decoded_inst.imm(11 downto 0) & '0', BIT_WIDTH)));
+                end if;
             when MISC_MEM | SYSTEM =>
                 -- no operation
             when others =>
                 -- no operation
-            -- TODO: BRANCH, LOAD, STORE
+            -- TODO: LOAD, STORE
         end case;
     end process;
 end behav;

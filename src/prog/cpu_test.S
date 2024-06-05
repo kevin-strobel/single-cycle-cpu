@@ -41,6 +41,8 @@ _start:
 	jal x1, tmpFunction
 	ebreak
 
+	j testBranches
+
 # never executed
 	addi x1, x0, 0
 	addi x2, x0, 0
@@ -78,3 +80,29 @@ tmpFunction:
 	addi x25, x0, 12
 	addi x26, x0, 24
 	jalr x1, 0(x1)
+
+testBranches:
+	addi x10, x0, 0 # sum up branches taken
+	addi x11, x0, 0 # sum up branches taken
+	addi x2, x0, 4
+	addi x3, x0, -1
+	addi x4, x0, 4
+
+	beq x2, x3, no
+	bne x2, x4, no
+	beq x2, x4, yes1
+
+	jal x0, no
+
+yes1:
+	# I believe the others are fine: beq, bne, blt, bge, bltu, bgeu
+	addi x10, x10, 1
+	bne x2, x3, yes2
+	jal x0, no
+
+no:
+	addi x11, x0, 1
+	jal x0, no
+
+yes2:
+	addi x10, x10, 1
