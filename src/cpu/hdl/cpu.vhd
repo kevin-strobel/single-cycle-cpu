@@ -15,7 +15,22 @@ entity cpu is
         clk : in std_logic;
         rstn : in std_logic;
 
-        gpio_leds : out std_logic_vector(7 downto 0)
+        gpio_leds : out std_logic_vector(7 downto 0);
+
+        j2a_master_axi_arvalid : in std_logic;
+        j2a_master_axi_araddr : in std_logic_vector(31 downto 0);
+        j2a_master_axi_arready : out std_logic;
+        j2a_master_axi_rvalid : out std_logic;
+        j2a_master_axi_rdata : out std_logic_vector(31 downto 0);
+        j2a_master_axi_rready : in std_logic;
+        j2a_master_axi_awvalid : in std_logic;
+        j2a_master_axi_awaddr : in std_logic_vector(31 downto 0);
+        j2a_master_axi_awready : out std_logic;
+        j2a_master_axi_wvalid : in std_logic;
+        j2a_master_axi_wdata : in std_logic_vector(31 downto 0);
+        j2a_master_axi_wready : out std_logic;
+        j2a_master_axi_bvalid : out std_logic;
+        j2a_master_axi_bready : in std_logic
 
         -- TESTBENCH-ONLY (connect below signals, too)
         -- debug_dec_inst_exc : out std_logic;
@@ -30,6 +45,8 @@ architecture behav of cpu is
     signal pc_addr_out : std_logic_vector(BIT_WIDTH-1 downto 0);
 
     signal imem_addr : std_logic_vector(BIT_WIDTH-1 downto 0);
+    signal imem_we : std_logic;
+    signal imem_din : std_logic_vector(BIT_WIDTH-1 downto 0);
     signal imem_dout : std_logic_vector(BIT_WIDTH-1 downto 0);
 
     signal dec_inst : std_logic_vector(INST_WIDTH-1 downto 0);
@@ -60,6 +77,11 @@ architecture behav of cpu is
     signal gpio_wdata : std_logic_vector(7 downto 0);
     signal gpio_isMmioAddr : std_logic;
 
+    signal j2a_rxActive : std_logic;
+    signal j2a_rxAddr : std_logic_vector(31 downto 0);
+    signal j2a_rxData : std_logic_vector(31 downto 0);
+    signal j2a_rxValid : std_logic;
+
     signal debug_out_dec_inst_exc : std_logic;
     signal debug_out_regfile : regfile_t;
     signal debug_out_dmem : mem_t;
@@ -81,8 +103,8 @@ begin
         clk => clk,
         rstn => rstn,
         addr => imem_addr,
-        we => '0',
-        din => (others => '0'),
+        we => imem_we,
+        din => imem_din,
         dout => imem_dout,
         debug_mem => open
     );
@@ -142,10 +164,31 @@ begin
         isMmioAddr => gpio_IsMmioAddr
     );
 
+    jtagToAxiInterface: entity work.axiDataReceiver
+    port map (
+        clk => clk,
+        rstn => rstn,
+        master_axi_arready => j2a_master_axi_arready,
+        master_axi_rvalid => j2a_master_axi_rvalid,
+        master_axi_rdata => j2a_master_axi_rdata,
+        master_axi_awvalid => j2a_master_axi_awvalid,
+        master_axi_awaddr => j2a_master_axi_awaddr,
+        master_axi_awready => j2a_master_axi_awready,
+        master_axi_wvalid => j2a_master_axi_wvalid,
+        master_axi_wdata => j2a_master_axi_wdata,
+        master_axi_wready => j2a_master_axi_wready,
+        master_axi_bvalid => j2a_master_axi_bvalid,
+        master_axi_bready => j2a_master_axi_bready,
+        rxActive => j2a_rxActive,
+        rxAddr => j2a_rxAddr,
+        rxData => j2a_rxData,
+        rxValid => j2a_rxValid
+    );
+
 ---------------------------------------------------------------------------
 
-    -- PC <----> IMEM
-    imem_addr <= pc_addr_out;
+    -- PC / JTAG2AXI <----> IMEM
+    imem_addr <= pc_addr_out when j2a_rxActive = '0' else j2a_rxAddr;
 
     -- IMEM <----> DECODER
     dec_inst <= byte_swap_32(imem_dout); -- little-endian --> big-endian
@@ -166,6 +209,10 @@ begin
     -- DECODER <----> GPIO
     gpio_waddr <= std_logic_vector(unsigned(regf_rdata1) + unsigned(sext(dec_decoded_inst.imm(11 downto 0), BIT_WIDTH)));
     gpio_wdata <= regf_rdata2(7 downto 0); -- no endianness conversion
+
+    -- JTAG2AXI <----> IMEM
+    imem_din <= j2a_rxData;
+    imem_we <= j2a_rxValid;
 
 
     -- DEBUG

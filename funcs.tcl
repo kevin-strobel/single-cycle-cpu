@@ -40,11 +40,13 @@ proc cpu_bd {} {
 	startgroup
 		# Add IPs
 		create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_0
+		create_bd_cell -type ip -vlnv xilinx.com:ip:jtag_axi:1.2 jtag_axi_0
 		create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0
 		create_bd_cell -type ip -vlnv xilinx.com:user:cpu:1.0 cpu_0
 
 		# Configure IPs
 		set_property -dict [list CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {25} CONFIG.USE_RESET {false} CONFIG.MMCM_CLKFBOUT_MULT_F {9.125} CONFIG.MMCM_CLKOUT0_DIVIDE_F {36.500} CONFIG.CLKOUT1_JITTER {181.828} CONFIG.CLKOUT1_PHASE_ERROR {104.359}] [get_bd_cells clk_wiz_0]
+		set_property -dict [list CONFIG.PROTOCOL {2}] [get_bd_cells jtag_axi_0]
 
 		# Add external pins
 		create_bd_port -dir I -type rst rstn
@@ -54,15 +56,20 @@ proc cpu_bd {} {
 
 	# Wiring
 	connect_bd_net [get_bd_ports rstn] [get_bd_pins proc_sys_reset_0/ext_reset_in]
+	connect_bd_net [get_bd_pins jtag_axi_0/aresetn] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
 	connect_bd_net [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins cpu_0/rstn]
 
 	connect_bd_net [get_bd_ports clk] [get_bd_pins clk_wiz_0/clk_in1]
 	connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins cpu_0/clk]
+	connect_bd_net [get_bd_pins jtag_axi_0/aclk] [get_bd_pins clk_wiz_0/clk_out1]
 	connect_bd_net [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins clk_wiz_0/clk_out1]
 
 	connect_bd_net [get_bd_ports gpio_leds] [get_bd_pins cpu_0/gpio_leds]
+	connect_bd_intf_net [get_bd_intf_pins jtag_axi_0/M_AXI] [get_bd_intf_pins cpu_0/j2a_master_axi]
 
 	connect_bd_net [get_bd_pins clk_wiz_0/locked] [get_bd_pins proc_sys_reset_0/dcm_locked]
+
+	assign_bd_address -target_address_space /jtag_axi_0/Data [get_bd_addr_segs cpu_0/j2a_master_axi/reg0] -force
 
 	validate_bd_design
 	regenerate_bd_layout

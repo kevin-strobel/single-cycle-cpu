@@ -21,3 +21,5 @@ os.system(f"{COMPILER} -nostdlib -nodefaultlibs -nostartfiles -fno-exceptions -m
 os.system(f"{OBJCOPY} -O binary {objFile} {binFile}")
 # hex
 os.system(f"python __bin2hex.py {binFile} {hexFile}")
+# JTAG2AXI
+os.system(f"python __jtag2axi.py {hexFile}")

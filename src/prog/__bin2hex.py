@@ -15,9 +15,7 @@ assert len(hexdata) != 0
 assert len(hexdata) % 8 == 0
 
 with open(outputFile, 'w') as f:
-    f.write("(")
     for i in range(0, len(hexdata), 8):
         if i != 0:
-            f.write(", ")
-        f.write("x\"" + hexdata[i:i+8] + "\"")
-    f.write(")")
+            f.write("\n")
+        f.write(hexdata[i:i+8])
