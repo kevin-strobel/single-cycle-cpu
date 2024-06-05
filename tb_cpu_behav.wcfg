@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_cpu_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="instruction" />
+            <top_module name="load_store" />
+            <top_module name="tb_cpu" />
+            <top_module name="types" />
+            <top_module name="utils" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="844.917 ns"></ZoomStartTime>
+      <ZoomEndTime time="995.418 ns"></ZoomEndTime>
+      <Cursor1Time time="870.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="276"></NameColumnWidth>
+      <ValueColumnWidth column_width="100"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="8" />
+   <wave_markers>
+      <marker time="530000" label="" />
+      <marker time="730000" label="" />
+      <marker time="800000" label="" />
+      <marker time="670000" label="" />
+      <marker time="870000" label="" />
+   </wave_markers>
+   <wvobject fp_name="/tb_cpu/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_cpu/rst" type="logic">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_cpu/cpu/pc_addr_out" type="array">
+      <obj_property name="ElementShortName">pc_addr_out[31:0]</obj_property>
+      <obj_property name="ObjectShortName">pc_addr_out[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_cpu/cpu/imem_dout" type="array">
+      <obj_property name="ElementShortName">imem_dout[31:0]</obj_property>
+      <obj_property name="ObjectShortName">imem_dout[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_cpu/cpu/dec_decoded_inst" type="array">
+      <obj_property name="ElementShortName">dec_decoded_inst</obj_property>
+      <obj_property name="ObjectShortName">dec_decoded_inst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_cpu/cpu/dec_inst_exc" type="logic">
+      <obj_property name="ElementShortName">dec_inst_exc</obj_property>
+      <obj_property name="ObjectShortName">dec_inst_exc</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_cpu/cpu/regfile/regfile" type="array">
+      <obj_property name="ElementShortName">regfile[0:31][31:0]</obj_property>
+      <obj_property name="ObjectShortName">regfile[0:31][31:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_cpu/cpu/dmem/mem" type="array">
+      <obj_property name="ElementShortName">mem[0:255][31:0]</obj_property>
+      <obj_property name="ObjectShortName">mem[0:255][31:0]</obj_property>
+   </wvobject>
+</wave_config>
