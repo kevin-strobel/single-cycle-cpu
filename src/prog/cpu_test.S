@@ -106,3 +106,20 @@ no:
 
 yes2:
 	addi x10, x10, 1
+
+	lb x20, 0(x0)
+	lb x21, 1(x0)
+	lb x22, 0(x10)
+	lb x24, 1(x10)
+	lbu x25, 0(x0)
+	lbu x26, 1(x0)
+	lbu x27, 0(x10)
+	lbu x28, 1(x10)
+
+	lh x10, 8(x2)
+	lh x11, 10(x2)
+	lhu x12, 8(x2)
+	lhu x13, 10(x2)
+
+	lw x14, 28(x0)
+	lw x15, 32(x0)

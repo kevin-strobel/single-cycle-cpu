@@ -2,6 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use work.load_store.all;
 use work.instruction.all;
 use work.utils.all;
 use work.types.regfile_t;
@@ -40,6 +41,11 @@ architecture behav of cpu is
     signal alu_uop : uop_t;
     signal alu_result : std_logic_vector(BIT_WIDTH-1 downto 0);
     signal alu_branch_comp_true : std_logic;
+
+    signal dmem_addr : std_logic_vector(BIT_WIDTH-1 downto 0);
+    signal dmem_we : std_logic;
+    signal dmem_din : std_logic_vector(BIT_WIDTH-1 downto 0);
+    signal dmem_dout : std_logic_vector(BIT_WIDTH-1 downto 0);
 begin
     pc: entity work.program_counter
     port map (
@@ -90,6 +96,16 @@ begin
         branch_comp_true => alu_branch_comp_true
     );
 
+    dmem: entity work.memory
+    port map (
+        clk => clk,
+        rst => rst,
+        addr => dmem_addr,
+        we => dmem_we,
+        din => dmem_din,
+        dout => dmem_dout
+    );
+
 ---------------------------------------------------------------------------
 
     -- PC <----> IMEM
@@ -108,7 +124,8 @@ begin
 ---------------------------------------------------------------------------
 
     -- TODO sensitivity list
-    cpu_ctrl: process(alu_result, dec_decoded_inst, pc_addr_out, regf_rdata1, regf_rdata2, alu_branch_comp_true)
+    cpu_ctrl: process(alu_result, dec_decoded_inst, pc_addr_out, regf_rdata1, regf_rdata2, alu_branch_comp_true, dmem_dout)
+        variable tmpAddress : std_logic_vector(BIT_WIDTH-1 downto 0);
     begin
         pc_wen_addr_in <= '0';
         pc_addr_in <= (others => '0');
@@ -116,6 +133,9 @@ begin
         alu_operand2 <= (others => '0');
         regf_wen <= '0';
         regf_wdata <= alu_result;
+        dmem_addr <= (others => '0');
+        dmem_we <= '0';
+        dmem_din <= (others => '0');
 
         case dec_decoded_inst.opcode is
             when LUI =>
@@ -151,11 +171,16 @@ begin
                     pc_wen_addr_in <= '1';
                     pc_addr_in <= std_logic_vector(unsigned(pc_addr_out) + unsigned(sext(dec_decoded_inst.imm(11 downto 0) & '0', BIT_WIDTH)));
                 end if;
+            when LOAD =>
+                tmpAddress := std_logic_vector(unsigned(regf_rdata1) + unsigned(sext(dec_decoded_inst.imm(11 downto 0), BIT_WIDTH)));
+                dmem_addr <= tmpAddress;
+                regf_wen <= '1';
+                regf_wdata <= convertMemoryToRegister(dmem_dout, dec_decoded_inst.uop, tmpAddress(1 downto 0));
             when MISC_MEM | SYSTEM =>
                 -- no operation
             when others =>
                 -- no operation
-            -- TODO: LOAD, STORE
+            -- TODO: STORE
         end case;
     end process;
 end behav;

@@ -202,7 +202,6 @@ begin
                         inst_exc <= '1';
                 end case;
 
-
             when RV_STORE =>
                 decoded_inst.opcode <= STORE;
 

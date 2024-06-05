@@ -37,6 +37,19 @@ begin
 
     test: process
         variable expectations : regfile_t;
+
+        procedure check is
+        begin
+            for i in 0 to 31 loop
+                if debug_regfile(i) /= expectations(i) then
+                    report "Register " & integer'image(i) & " - actual: " &
+                        integer'image(to_integer(unsigned(debug_regfile(i)))) & ", expected: " &
+                        integer'image(to_integer(unsigned(expectations(i))));
+                end if;
+
+                assert debug_regfile(i) = expectations(i) severity failure;
+            end loop;
+        end check;
     begin
         wait for 356.9ns;
 
@@ -74,24 +87,41 @@ begin
             x"0080000d", -- x30
             x"00000004"  -- x31
         );
+        check;
 
-        for i in 0 to 31 loop
-            assert debug_regfile(i) = expectations(i) severity failure;
-        end loop;
-
-        wait for 50ns;
+        wait for 50ns; -- 406
 
         expectations(1)  := x"00000118";
         expectations(25) := x"0000000c";
         expectations(26) := x"00000018";
-        for i in 0 to 31 loop
-            assert debug_regfile(i) = expectations(i) severity failure;
-        end loop;
+        check;
 
-        wait for 130ns;
+        wait for 130ns; -- 536
         expectations(1)  := x"00000118";
+        expectations(2)  := x"00000004";
+        expectations(3)  := x"ffffffff";
+        expectations(4)  := x"00000004";
         expectations(10) := x"00000002";
         expectations(11) := x"00000000";
+        check;
+
+        wait for 140ns; -- 676
+
+        expectations(20) := x"ffffffb7";
+        expectations(21) := x"00000040";
+        expectations(22) := x"00000023";
+        expectations(24) := x"00000001";
+        expectations(25) := x"000000b7";
+        expectations(26) := x"00000040";
+        expectations(27) := x"00000023";
+        expectations(28) := x"00000001";
+        expectations(10) := x"00000293";
+        expectations(11) := x"ffffff81";
+        expectations(12) := x"00000293";
+        expectations(13) := x"0000ff81";
+        expectations(14) := x"fff00493";
+        expectations(15) := x"0014a513";
+        check;
 
         report "D O N E";
 
