@@ -15,11 +15,12 @@ entity cpu is
         clk : in std_logic;
         rstn : in std_logic;
 
-        gpio_leds : out std_logic_vector(7 downto 0);
+        gpio_leds : out std_logic_vector(7 downto 0)
 
-        debug_dec_inst_exc : out std_logic;
-        debug_regfile : out regfile_t;
-        debug_dmem : out mem_t
+        -- TESTBENCH-ONLY (connect below signals, too)
+        -- debug_dec_inst_exc : out std_logic;
+        -- debug_regfile : out regfile_t;
+        -- debug_dmem : out mem_t
     );
 end cpu;
 
@@ -170,11 +171,12 @@ begin
     -- DEBUG
     debug_out_dec_inst_exc <= dec_inst_exc;
 
-    wireDebugSignals: if TESTBENCH_MODE generate
-        debug_dec_inst_exc <= debug_out_dec_inst_exc;
-        debug_regfile <= debug_out_regfile;
-        debug_dmem <= debug_out_dmem;
-    end generate;
+    -- TESTBENCH-ONLY
+    -- wireDebugSignals: if TESTBENCH_MODE generate
+    --     debug_dec_inst_exc <= debug_out_dec_inst_exc;
+    --     debug_regfile <= debug_out_regfile;
+    --     debug_dmem <= debug_out_dmem;
+    -- end generate;
 
 ---------------------------------------------------------------------------
 
