@@ -15,7 +15,8 @@ entity cpu is
         clk : in std_logic;
         rstn : in std_logic;
 
-        -- do not wire debug signals in production mode
+        gpio_leds : out std_logic_vector(7 downto 0);
+
         debug_dec_inst_exc : out std_logic;
         debug_regfile : out regfile_t;
         debug_dmem : out mem_t
@@ -52,6 +53,11 @@ architecture behav of cpu is
     signal dmem_we : std_logic;
     signal dmem_din : std_logic_vector(BIT_WIDTH-1 downto 0);
     signal dmem_dout : std_logic_vector(BIT_WIDTH-1 downto 0);
+
+    signal gpio_wen : std_logic;
+    signal gpio_waddr : std_logic_vector(BIT_WIDTH-1 downto 0);
+    signal gpio_wdata : std_logic_vector(7 downto 0);
+    signal gpio_isMmioAddr : std_logic;
 
     signal debug_out_dec_inst_exc : std_logic;
     signal debug_out_regfile : regfile_t;
@@ -124,10 +130,22 @@ begin
         debug_mem => debug_out_dmem
     );
 
+    gpio: entity work.gpio
+    port map (
+        clk => clk,
+        rstn => rstn,
+        wen => gpio_wen,
+        waddr => gpio_waddr,
+        wdata => gpio_wdata,
+        leds => gpio_leds,
+        isMmioAddr => gpio_IsMmioAddr
+    );
+
 ---------------------------------------------------------------------------
 
     -- PC <----> IMEM
     imem_addr <= pc_addr_out;
+
     -- IMEM <----> DECODER
     dec_inst <= byte_swap_32(imem_dout); -- little-endian --> big-endian
 
@@ -138,6 +156,11 @@ begin
 
     -- DECODER <----> ALU
     alu_uop <= dec_decoded_inst.uop;
+
+    -- DECODER <----> GPIO
+    gpio_waddr <= std_logic_vector(unsigned(regf_rdata1) + unsigned(sext(dec_decoded_inst.imm(11 downto 0), BIT_WIDTH)));
+    gpio_wdata <= regf_rdata2(7 downto 0); -- no endianness conversion
+
 
     -- DEBUG
     debug_out_dec_inst_exc <= dec_inst_exc;
@@ -150,8 +173,7 @@ begin
 
 ---------------------------------------------------------------------------
 
-    cpu_ctrl: process(alu_result, dec_decoded_inst, pc_addr_out, regf_rdata1, regf_rdata2, alu_branch_comp_true, dmem_dout)
-        variable tmpAddress : std_logic_vector(BIT_WIDTH-1 downto 0);
+    cpu_ctrl: process(alu_result, dec_decoded_inst, pc_addr_out, regf_rdata1, regf_rdata2, alu_branch_comp_true, dmem_dout, gpio_isMmioAddr)
     begin
         pc_wen_addr_in <= '0';
         pc_addr_in <= (others => '0');
@@ -162,6 +184,7 @@ begin
         dmem_addr <= (others => '0');
         dmem_we <= '0';
         dmem_din <= (others => '0');
+        gpio_wen <= '0';
 
         case dec_decoded_inst.opcode is
             when LUI =>
@@ -209,6 +232,13 @@ begin
                 dmem_we <= '1';
                 dmem_addr <= tmpAddress;
                 dmem_din <= convertRegisterToMemory(dec_decoded_inst.uop, tmpAddress(1 downto 0), regf_rdata2, dmem_dout);
+                if gpio_isMmioAddr = '1' then
+                    -- STORE to GPIO
+                    gpio_wen <= '1';
+                else
+                    -- Regular STORE to DMEM
+                    dmem_we <= '1';
+                end if;
             when MISC_MEM | SYSTEM =>
                 -- no operation
             when others =>
