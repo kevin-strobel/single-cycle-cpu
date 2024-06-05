@@ -16,7 +16,7 @@ binFile = rawName + ".bin"
 hexFile = rawName + ".hex"
 
 # Compile
-if os.system(f"{COMPILER} -nostdlib -nodefaultlibs -nostartfiles -fno-exceptions -march=rv32i -mabi=ilp32 -T linkerscript.ld -o {objFile} bootstrap.S {sourceFile}") != 0:
+if os.system(f"{COMPILER} -std=c++17 -nostdlib -nodefaultlibs -nostartfiles -fno-exceptions -march=rv32i -mabi=ilp32 -T linkerscript.ld -o {objFile} bootstrap.S {sourceFile}") != 0:
     exit(-1)
 # bin
 if os.system(f"{OBJCOPY} -O binary {objFile} {binFile}") != 0:
