@@ -8,9 +8,6 @@ use work.utils.all;
 use work.types.all;
 
 entity cpu is
-    generic (
-        TESTBENCH_MODE : boolean := false
-    );
     port (
         clk : in std_logic;
         rstn : in std_logic;
@@ -96,12 +93,8 @@ begin
     );
 
     imem: entity work.memory
-    generic map (
-        instInit => true
-    )
     port map (
         clk => clk,
-        rstn => rstn,
         addr => imem_addr,
         we => imem_we,
         din => imem_din,
@@ -140,12 +133,8 @@ begin
     );
 
     dmem: entity work.memory
-    generic map (
-        instInit => TESTBENCH_MODE
-    )
     port map (
         clk => clk,
-        rstn => rstn,
         addr => dmem_addr,
         we => dmem_we,
         din => dmem_din,
@@ -219,11 +208,9 @@ begin
     debug_out_dec_inst_exc <= dec_inst_exc;
 
     -- TESTBENCH-ONLY
-    -- wireDebugSignals: if TESTBENCH_MODE generate
-    --     debug_dec_inst_exc <= debug_out_dec_inst_exc;
-    --     debug_regfile <= debug_out_regfile;
-    --     debug_dmem <= debug_out_dmem;
-    -- end generate;
+    -- debug_dec_inst_exc <= debug_out_dec_inst_exc;
+    -- debug_regfile <= debug_out_regfile;
+    -- debug_dmem <= debug_out_dmem;
 
 ---------------------------------------------------------------------------
 
