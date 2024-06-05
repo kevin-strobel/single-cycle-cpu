@@ -12,7 +12,7 @@ entity cpu is
         clk : in std_logic;
         rstn : in std_logic;
 
-        gpio_leds : out std_logic_vector(7 downto 0);
+        io_leds : out std_logic_vector(7 downto 0);
 
         j2a_master_axi_arvalid : in std_logic;
         j2a_master_axi_araddr : in std_logic_vector(31 downto 0);
@@ -69,10 +69,8 @@ architecture behav of cpu is
     signal dmem_din : std_logic_vector(BIT_WIDTH-1 downto 0);
     signal dmem_dout : std_logic_vector(BIT_WIDTH-1 downto 0);
 
-    signal gpio_wen : std_logic;
-    signal gpio_waddr : std_logic_vector(BIT_WIDTH-1 downto 0);
-    signal gpio_wdata : std_logic_vector(7 downto 0);
-    signal gpio_isMmioAddr : std_logic;
+    signal ioLeds_wen : std_logic;
+    signal ioLeds_wdata : std_logic_vector(7 downto 0);
 
     signal j2a_rxActive : std_logic;
     signal j2a_rxAddr : std_logic_vector(31 downto 0);
@@ -142,15 +140,13 @@ begin
         debug_mem => debug_out_dmem
     );
 
-    gpio: entity work.gpio
+    ioLeds: entity work.ioLeds
     port map (
         clk => clk,
         rstn => rstn,
-        wen => gpio_wen,
-        waddr => gpio_waddr,
-        wdata => gpio_wdata,
-        leds => gpio_leds,
-        isMmioAddr => gpio_IsMmioAddr
+        wen => ioLeds_wen,
+        wdata => ioLeds_wdata,
+        leds => io_leds
     );
 
     jtagToAxiInterface: entity work.axiDataReceiver
@@ -195,9 +191,8 @@ begin
     dmem_addr <= std_logic_vector(unsigned(regf_rdata1) + unsigned(sext(dec_decoded_inst.imm(11 downto 0), BIT_WIDTH)));
     dmem_din <= convertRegisterToMemory(dec_decoded_inst.uop, dmem_addr(1 downto 0), regf_rdata2, dmem_dout);
 
-    -- DECODER <----> GPIO
-    gpio_waddr <= std_logic_vector(unsigned(regf_rdata1) + unsigned(sext(dec_decoded_inst.imm(11 downto 0), BIT_WIDTH)));
-    gpio_wdata <= regf_rdata2(7 downto 0); -- no endianness conversion
+    -- DECODER <----> IO_LEDS
+    ioLeds_wdata <= regf_rdata2(7 downto 0); -- no endianness conversion
 
     -- JTAG2AXI <----> IMEM
     imem_din <= j2a_rxData;
@@ -214,7 +209,8 @@ begin
 
 ---------------------------------------------------------------------------
 
-    cpu_ctrl: process(alu_result, dec_decoded_inst, pc_addr_out, regf_rdata1, regf_rdata2, alu_branch_comp_true, dmem_dout, dmem_addr, gpio_isMmioAddr)
+    cpu_ctrl: process(alu_result, dec_decoded_inst, pc_addr_out, regf_rdata1, regf_rdata2, alu_branch_comp_true, dmem_dout, dmem_addr)
+        constant MMIO_ADDR_LED : std_logic_vector(BIT_WIDTH-1 downto 0) := x"0badf00d";
     begin
         pc_wen_addr_in <= '0';
         pc_addr_in <= (others => '0');
@@ -223,7 +219,7 @@ begin
         regf_wen <= '0';
         regf_wdata <= alu_result;
         dmem_we <= '0';
-        gpio_wen <= '0';
+        ioLeds_wen <= '0';
 
         case dec_decoded_inst.opcode is
             when LUI =>
@@ -263,9 +259,9 @@ begin
                 regf_wen <= '1';
                 regf_wdata <= convertMemoryToRegister(dmem_dout, dec_decoded_inst.uop, dmem_addr(1 downto 0));
             when STORE =>
-                if gpio_isMmioAddr = '1' then
-                    -- STORE to GPIO
-                    gpio_wen <= '1';
+                if dmem_addr = MMIO_ADDR_LED then
+                    -- STORE to IO_LEDS
+                    ioLeds_wen <= '1';
                 else
                     -- Regular STORE to DMEM
                     dmem_we <= '1';
