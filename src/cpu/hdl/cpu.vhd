@@ -133,11 +133,21 @@ begin
                 alu_operand1 <= regf_rdata1;
                 alu_operand2 <= regf_rdata2;
                 regf_wen <= '1';
+            when JAL =>
+                pc_wen_addr_in <= '1';
+                pc_addr_in <= std_logic_vector(unsigned(pc_addr_out) + unsigned(sext(dec_decoded_inst.imm & '0', BIT_WIDTH)));
+                regf_wen <= '1';
+                regf_wdata <= std_logic_vector(unsigned(pc_addr_out) + INST_WIDTH_BYTE);
+            when JALR =>
+                pc_wen_addr_in <= '1';
+                pc_addr_in <= std_logic_vector(unsigned(regf_rdata1) + unsigned(sext(dec_decoded_inst.imm(11 downto 0), BIT_WIDTH-1) & '0'));
+                regf_wen <= '1';
+                regf_wdata <= std_logic_vector(unsigned(pc_addr_out) + INST_WIDTH_BYTE);
             when MISC_MEM | SYSTEM =>
                 -- no operation
             when others =>
                 -- no operation
-            -- TODO: JAL, JALR, BRANCH, LOAD, STORE
+            -- TODO: BRANCH, LOAD, STORE
         end case;
     end process;
 end behav;

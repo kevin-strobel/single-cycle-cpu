@@ -79,6 +79,15 @@ begin
             assert debug_regfile(i) = expectations(i) severity failure;
         end loop;
 
+        wait for 50ns;
+
+        expectations(1)  := x"00000114";
+        expectations(25) := x"0000000c";
+        expectations(26) := x"00000018";
+        for i in 0 to 31 loop
+            assert debug_regfile(i) = expectations(i) severity failure;
+        end loop;
+
         report "D O N E";
 
         wait;

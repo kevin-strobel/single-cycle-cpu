@@ -6,6 +6,7 @@ use work.utils.all;
 
 package instruction is
     constant INST_WIDTH : positive := 32;
+    constant INST_WIDTH_BYTE : positive := INST_WIDTH / 8;
     -- immediate max length
     -- The immediate is one of imm12, imm20, shamt, shamt_32; the constant represents the maximum immediate
     -- length used for std_logic_vector allocation.
