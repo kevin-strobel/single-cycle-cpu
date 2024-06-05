@@ -14,15 +14,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="844.917 ns"></ZoomStartTime>
-      <ZoomEndTime time="995.418 ns"></ZoomEndTime>
-      <Cursor1Time time="870.000 ns"></Cursor1Time>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="123.301 ns"></ZoomEndTime>
+      <Cursor1Time time="0.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="276"></NameColumnWidth>
-      <ValueColumnWidth column_width="100"></ValueColumnWidth>
+      <ValueColumnWidth column_width="92"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="8" />
+   <WVObjectSize size="9" />
    <wave_markers>
       <marker time="530000" label="" />
       <marker time="730000" label="" />
@@ -34,9 +34,9 @@
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
    </wvobject>
-   <wvobject fp_name="/tb_cpu/rst" type="logic">
-      <obj_property name="ElementShortName">rst</obj_property>
-      <obj_property name="ObjectShortName">rst</obj_property>
+   <wvobject fp_name="/tb_cpu/rstn" type="logic">
+      <obj_property name="ElementShortName">rstn</obj_property>
+      <obj_property name="ObjectShortName">rstn</obj_property>
    </wvobject>
    <wvobject fp_name="/tb_cpu/cpu/pc_addr_out" type="array">
       <obj_property name="ElementShortName">pc_addr_out[31:0]</obj_property>
@@ -57,10 +57,13 @@
    <wvobject fp_name="/tb_cpu/cpu/regfile/regfile" type="array">
       <obj_property name="ElementShortName">regfile[0:31][31:0]</obj_property>
       <obj_property name="ObjectShortName">regfile[0:31][31:0]</obj_property>
-      <obj_property name="isExpanded"></obj_property>
    </wvobject>
    <wvobject fp_name="/tb_cpu/cpu/dmem/mem" type="array">
       <obj_property name="ElementShortName">mem[0:255][31:0]</obj_property>
       <obj_property name="ObjectShortName">mem[0:255][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_cpu/cpu/gpio/ledState" type="array">
+      <obj_property name="ElementShortName">ledState[7:0]</obj_property>
+      <obj_property name="ObjectShortName">ledState[7:0]</obj_property>
    </wvobject>
 </wave_config>
