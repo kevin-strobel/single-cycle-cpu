@@ -1,1 +1,4 @@
 vivado/
+*.hex
+*.ihex
+*.o
