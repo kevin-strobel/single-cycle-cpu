@@ -123,3 +123,29 @@ yes2:
 
 	lw x14, 28(x0)
 	lw x15, 32(x0)
+
+	li x2, 0xfedcba98
+	li x3, 0xba
+	li x4, 0xec
+	li x5, 0xcb
+	li x10, 8
+	sb x2, 0(x10)
+	sb x3, 1(x10)
+	sb x4, 2(x10)
+	sb x5, 3(x10)
+
+	sh x2, 4(x10)
+	sh x3, 6(x10)
+
+	sw x2, 16(x10)
+
+	lb x31, 0(x10)
+	lb x30, 1(x10)
+	lb x29, 2(x10)
+	lb x28, 3(x10)
+	lh x27, 4(x10)
+	lh x26, 6(x10)
+	lw x25, 16(x10)
+
+exitLoop:
+	j exitLoop

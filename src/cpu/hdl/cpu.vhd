@@ -5,14 +5,20 @@ use ieee.numeric_std.all;
 use work.load_store.all;
 use work.instruction.all;
 use work.utils.all;
-use work.types.regfile_t;
+use work.types.all;
 
 entity cpu is
+    generic (
+        TESTBENCH_MODE : boolean := false
+    );
     port (
-      clk : in std_logic;
-      rst : in std_logic;
+        clk : in std_logic;
+        rst : in std_logic;
 
-      debug_regfile : out regfile_t
+        -- do not wire debug signals in production mode
+        debug_dec_inst_exc : out std_logic;
+        debug_regfile : out regfile_t;
+        debug_dmem : out mem_t
     );
 end cpu;
 
@@ -26,7 +32,7 @@ architecture behav of cpu is
 
     signal dec_inst : std_logic_vector(INST_WIDTH-1 downto 0);
     signal dec_decoded_inst : decoded_inst_t;
-    signal dec_inst_exc : std_logic; -- debug-only
+    signal dec_inst_exc : std_logic;
 
     signal regf_raddr1 : std_logic_vector(BIT_LOG2-1 downto 0);
     signal regf_raddr2 : std_logic_vector(BIT_LOG2-1 downto 0);
@@ -57,13 +63,17 @@ begin
     );
 
     imem: entity work.memory
+    generic map (
+        instInit => true
+    )
     port map (
         clk => clk,
         rst => rst,
         addr => imem_addr,
         we => '0',
         din => (others => '0'),
-        dout => imem_dout
+        dout => imem_dout,
+        debug_mem => open
     );
 
     decoder: entity work.decoder
@@ -97,13 +107,17 @@ begin
     );
 
     dmem: entity work.memory
+    generic map (
+        instInit => TESTBENCH_MODE
+    )
     port map (
         clk => clk,
         rst => rst,
         addr => dmem_addr,
         we => dmem_we,
         din => dmem_din,
-        dout => dmem_dout
+        dout => dmem_dout,
+        debug_mem => debug_dmem
     );
 
 ---------------------------------------------------------------------------
@@ -121,9 +135,11 @@ begin
     -- DECODER <----> ALU
     alu_uop <= dec_decoded_inst.uop;
 
+    -- DEBUG
+    debug_dec_inst_exc <= dec_inst_exc;
+
 ---------------------------------------------------------------------------
 
-    -- TODO sensitivity list
     cpu_ctrl: process(alu_result, dec_decoded_inst, pc_addr_out, regf_rdata1, regf_rdata2, alu_branch_comp_true, dmem_dout)
         variable tmpAddress : std_logic_vector(BIT_WIDTH-1 downto 0);
     begin
@@ -172,15 +188,21 @@ begin
                     pc_addr_in <= std_logic_vector(unsigned(pc_addr_out) + unsigned(sext(dec_decoded_inst.imm(11 downto 0) & '0', BIT_WIDTH)));
                 end if;
             when LOAD =>
+                -- entity "memory" takes care of address alignment
                 tmpAddress := std_logic_vector(unsigned(regf_rdata1) + unsigned(sext(dec_decoded_inst.imm(11 downto 0), BIT_WIDTH)));
                 dmem_addr <= tmpAddress;
                 regf_wen <= '1';
                 regf_wdata <= convertMemoryToRegister(dmem_dout, dec_decoded_inst.uop, tmpAddress(1 downto 0));
+            when STORE =>
+                -- entity "memory" takes care of address alignment
+                tmpAddress := std_logic_vector(unsigned(regf_rdata1) + unsigned(sext(dec_decoded_inst.imm(11 downto 0), BIT_WIDTH)));
+                dmem_we <= '1';
+                dmem_addr <= tmpAddress;
+                dmem_din <= convertRegisterToMemory(dec_decoded_inst.uop, tmpAddress(1 downto 0), regf_rdata2, dmem_dout);
             when MISC_MEM | SYSTEM =>
                 -- no operation
             when others =>
                 -- no operation
-            -- TODO: STORE
         end case;
     end process;
 end behav;

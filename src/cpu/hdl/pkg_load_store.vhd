@@ -5,9 +5,16 @@ use work.utils.all;
 use work.instruction.all;
 
 package load_store is
+    -- LOAD
     function convertMemoryToRegister (memoryData : in std_logic_vector(BIT_WIDTH-1 downto 0);
                                       mode : in uop_t;
                                       addressOffset : in std_logic_vector(1 downto 0)) return std_logic_vector;
+
+    -- STORE
+    function convertRegisterToMemory (mode : in uop_t;
+                                      addressOffset : in std_logic_vector(1 downto 0);
+                                      registerData : in std_logic_vector(BIT_WIDTH-1 downto 0);
+                                      memoryData : in std_logic_vector(BIT_WIDTH-1 downto 0)) return std_logic_vector;
 end load_store;
 
 package body load_store is
@@ -58,4 +65,42 @@ package body load_store is
                 return zeros(BIT_WIDTH);
         end case;
     end convertMemoryToRegister;
+
+    function convertRegisterToMemory (mode : in uop_t;
+                                      addressOffset : in std_logic_vector(1 downto 0);
+                                      registerData : in std_logic_vector(BIT_WIDTH-1 downto 0);
+                                      memoryData : in std_logic_vector(BIT_WIDTH-1 downto 0)) return std_logic_vector is
+        variable result : std_logic_vector(BIT_WIDTH-1 downto 0);
+        -- byte swapping
+        constant data_byte : std_logic_vector(7 downto 0) := registerData(7 downto 0);
+        constant data_hword : std_logic_vector(15 downto 0) := byte_swap_16(registerData(15 downto 0));
+        constant data_word : std_logic_vector(31 downto 0) := byte_swap_32(registerData(31 downto 0));
+    begin
+        case mode is
+            when MEM_BYTE =>
+                case addressOffset is
+                    when "00" =>
+                        result := data_byte & memoryData(23 downto 0);
+                    when "01" =>
+                        result := memoryData(31 downto 24) & data_byte & memoryData(15 downto 0);
+                    when "10" =>
+                        result := memoryData(31 downto 16) & data_byte & memoryData(7 downto 0);
+                    when others => -- "11"
+                        result := memoryData(31 downto 8) & data_byte;
+                end case;
+
+            when MEM_HWORD =>
+                case addressOffset is
+                    when "00" =>
+                        result := data_hword & memoryData(15 downto 0);
+                    when others => -- "10"
+                        result := memoryData(31 downto 16) & data_hword;
+                end case;
+
+            when others => -- MEM_WORD
+                result := data_word;
+        end case;
+
+        return result;
+    end convertRegisterToMemory;
 end load_store;
