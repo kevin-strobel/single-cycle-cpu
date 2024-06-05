@@ -16,6 +16,8 @@ proc cpu_new {} {
 	add_files ${CPU_SRC_DIR}/hdl
 	set_property top cpu [current_fileset]
 
+	add_files -fileset constrs_1 ${CPU_SRC_DIR}/constr
+
 	add_files -fileset sim_1 ${CPU_SRC_DIR}/sim
 }
 

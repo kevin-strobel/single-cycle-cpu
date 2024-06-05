@@ -13,7 +13,7 @@ entity cpu is
     );
     port (
         clk : in std_logic;
-        rst : in std_logic;
+        rstn : in std_logic;
 
         -- do not wire debug signals in production mode
         debug_dec_inst_exc : out std_logic;
@@ -56,7 +56,7 @@ begin
     pc: entity work.program_counter
     port map (
         clk => clk,
-        rst => rst,
+        rstn => rstn,
         wen_addr_in => pc_wen_addr_in,
         addr_in => pc_addr_in,
         addr_out => pc_addr_out
@@ -68,7 +68,7 @@ begin
     )
     port map (
         clk => clk,
-        rst => rst,
+        rstn => rstn,
         addr => imem_addr,
         we => '0',
         din => (others => '0'),
@@ -86,7 +86,7 @@ begin
     regfile: entity work.regfile
     port map (
         clk => clk,
-        rst => rst,
+        rstn => rstn,
         raddr1 => regf_raddr1,
         raddr2 => regf_raddr2,
         wen => regf_wen,
@@ -112,7 +112,7 @@ begin
     )
     port map (
         clk => clk,
-        rst => rst,
+        rstn => rstn,
         addr => dmem_addr,
         we => dmem_we,
         din => dmem_din,

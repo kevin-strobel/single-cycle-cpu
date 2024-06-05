@@ -8,7 +8,7 @@ use work.types.regfile_t;
 entity regfile is
     port (
         clk : in std_logic;
-        rst : in std_logic;
+        rstn : in std_logic;
 
         raddr1 : in std_logic_vector(BIT_LOG2-1 downto 0);
         raddr2 : in std_logic_vector(BIT_LOG2-1 downto 0);
@@ -34,7 +34,7 @@ begin
     write: process(clk)
     begin
         if rising_edge(clk) then
-            if rst = '1' then
+            if rstn = '0' then
                 regfile <= (others => (others => '0'));
             else
                 -- x0: always zero

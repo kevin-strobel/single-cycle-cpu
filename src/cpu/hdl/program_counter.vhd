@@ -7,7 +7,7 @@ use work.utils.all;
 entity program_counter is
     port(
         clk : in std_logic;
-        rst : in std_logic;
+        rstn : in std_logic;
 
         wen_addr_in : in std_logic;
         addr_in : in std_logic_vector(BIT_WIDTH-1 downto 0);
@@ -24,7 +24,7 @@ begin
     count: process(clk)
     begin
         if rising_edge(clk) then
-            if rst = '1' then
+            if rstn = '0' then
                 counter <= (others => '0');
             else
                 if wen_addr_in = '1' then

@@ -9,7 +9,7 @@ end tb_cpu;
 
 architecture behav of tb_cpu is
     signal clk : std_logic := '1';
-    signal rst : std_logic := '1';
+    signal rstn : std_logic := '0';
     
     signal debug_regfile : regfile_t;
     signal debug_dmem : mem_t;
@@ -20,7 +20,7 @@ begin
     )
     port map (
         clk => clk,
-        rst => rst,
+        rstn => rstn,
 
         debug_regfile => debug_regfile,
         debug_dmem => debug_dmem
@@ -32,10 +32,10 @@ begin
         clk <= not clk;
     end process;
     
-    stimuli_rst: process
+    stimuli_rstn: process
     begin
         wait for 10ns * 4;
-        rst <= '0';
+        rstn <= '1';
 
         wait;
     end process;
