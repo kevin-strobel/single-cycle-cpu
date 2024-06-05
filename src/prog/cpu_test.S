@@ -36,4 +36,4 @@ _start:
 
 	# test x0
 	lui x0, 0x1248
-	addi x1, x0, 0
+	addi x3, x0, 0
