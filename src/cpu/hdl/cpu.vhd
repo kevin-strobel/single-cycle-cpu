@@ -52,6 +52,10 @@ architecture behav of cpu is
     signal dmem_we : std_logic;
     signal dmem_din : std_logic_vector(BIT_WIDTH-1 downto 0);
     signal dmem_dout : std_logic_vector(BIT_WIDTH-1 downto 0);
+
+    signal debug_out_dec_inst_exc : std_logic;
+    signal debug_out_regfile : regfile_t;
+    signal debug_out_dmem : mem_t;
 begin
     pc: entity work.program_counter
     port map (
@@ -94,7 +98,7 @@ begin
         wdata => regf_wdata,
         rdata1 => regf_rdata1,
         rdata2 => regf_rdata2,
-        debug_regfile => debug_regfile
+        debug_regfile => debug_out_regfile
     );
 
     alu: entity work.alu
@@ -117,7 +121,7 @@ begin
         we => dmem_we,
         din => dmem_din,
         dout => dmem_dout,
-        debug_mem => debug_dmem
+        debug_mem => debug_out_dmem
     );
 
 ---------------------------------------------------------------------------
@@ -136,7 +140,13 @@ begin
     alu_uop <= dec_decoded_inst.uop;
 
     -- DEBUG
-    debug_dec_inst_exc <= dec_inst_exc;
+    debug_out_dec_inst_exc <= dec_inst_exc;
+
+    wireDebugSignals: if TESTBENCH_MODE generate
+        debug_dec_inst_exc <= debug_out_dec_inst_exc;
+        debug_regfile <= debug_out_regfile;
+        debug_dmem <= debug_out_dmem;
+    end generate;
 
 ---------------------------------------------------------------------------
 
